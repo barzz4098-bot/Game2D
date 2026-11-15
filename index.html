@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ATHERIA — Open-World Anime RPG</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+  </script>
+</head>
+<body>
+  <canvas id="game" tabindex="0"></canvas>
+
+  <div id="ui">
+    <!-- MAIN MENU -->
+    <section id="screen-menu" class="screen active">
+      <div class="menu-box">
+        <h1 class="logo">ATHERIA</h1>
+        <p class="tagline">Open-World Anime RPG</p>
+        <button class="btn big" id="btn-new">New Game</button>
+        <button class="btn big" id="btn-continue">Continue</button>
+        <button class="btn big" id="btn-settings">Settings</button>
+        <button class="btn big" id="btn-credits">Credits</button>
+        <p class="version">Tahap 1 — Dunia, karakter, kamera, movement</p>
+      </div>
+    </section>
+
+    <!-- CHARACTER CREATION -->
+    <section id="screen-creator" class="screen">
+      <div class="panel glass creator-panel">
+        <h2>Buat Karakter</h2>
+        <div id="creator-options"></div>
+        <label class="field">Nama Karakter
+          <input id="char-name" type="text" maxlength="16" placeholder="Masukkan nama" autocomplete="off">
+        </label>
+        <p id="creator-error" class="error"></p>
+        <div class="row">
+          <button class="btn" id="btn-random">Acak</button>
+          <button class="btn" id="btn-creator-back">Kembali</button>
+          <button class="btn primary" id="btn-start">Mulai Petualangan</button>
+        </div>
+      </div>
+      <p class="hint-drag">Seret mouse pada karakter untuk memutar</p>
+    </section>
+
+    <!-- LOADING -->
+    <section id="screen-loading" class="screen">
+      <div class="loading-box">
+        <h2 class="logo small">ATHERIA</h2>
+        <div class="bar"><div id="loading-fill"></div></div>
+        <p id="loading-text">Memuat...</p>
+      </div>
+    </section>
+
+    <!-- CLICK TO PLAY -->
+    <section id="screen-ready" class="screen">
+      <div class="panel glass ready-box">
+        <h2 id="ready-title">Siap</h2>
+        <p>Klik untuk mengunci mouse dan mulai bermain</p>
+        <p class="small">Esc untuk menjeda</p>
+      </div>
+    </section>
+
+    <!-- PAUSE -->
+    <section id="screen-pause" class="screen">
+      <div class="panel glass pause-box">
+        <h2>Jeda</h2>
+        <button class="btn big" id="btn-resume">Lanjutkan</button>
+        <button class="btn big" id="btn-pause-settings">Pengaturan</button>
+        <button class="btn big" id="btn-save-quit">Simpan &amp; Keluar</button>
+      </div>
+    </section>
+
+    <!-- SETTINGS (modal) -->
+    <section id="screen-settings" class="screen modal">
+      <div class="panel glass settings-box">
+        <h2>Pengaturan</h2>
+        <label class="field">Kualitas Grafis
+          <select id="set-quality">
+            <option value="low">Rendah (PC lama / Intel UHD)</option>
+            <option value="medium">Sedang</option>
+            <option value="high">Tinggi</option>
+          </select>
+        </label>
+        <label class="field">Sensitivitas Mouse <span id="set-sens-val"></span>
+          <input id="set-sens" type="range" min="0.3" max="2.5" step="0.1">
+        </label>
+        <label class="check"><input id="set-fps" type="checkbox"> Tampilkan FPS</label>
+        <p class="small" id="set-note">Perubahan kualitas grafis memuat ulang halaman (progres disimpan).</p>
+        <div class="row">
+          <button class="btn primary" id="btn-settings-ok">Terapkan</button>
+          <button class="btn" id="btn-settings-back">Kembali</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CREDITS (modal) -->
+    <section id="screen-credits" class="screen modal">
+      <div class="panel glass settings-box">
+        <h2>Credits</h2>
+        <p>ATHERIA — prototipe Open-World Anime RPG berbasis browser.</p>
+        <p>Rendering 3D: <b>Three.js</b> (lisensi MIT). Semua model, tekstur, geometri, dan efek dibuat secara prosedural lewat kode; tidak ada aset pihak ketiga yang digunakan.</p>
+        <div class="row"><button class="btn primary" id="btn-credits-back">Kembali</button></div>
+      </div>
+    </section>
+
+    <!-- HUD -->
+    <section id="hud" class="screen hud">
+      <div class="hud-tl glass">
+        <div class="name-line"><span id="hud-name"></span><span class="lv">Lv. <b id="hud-level">1</b></span></div>
+        <div class="bar hp"><div id="bar-hp"></div><span id="hp-text"></span></div>
+        <div class="bar en"><div id="bar-en"></div><span id="en-text"></span></div>
+        <div class="bar exp"><div id="bar-exp"></div></div>
+        <div class="elem-line">Elemen: <b>Belum terbangun</b></div>
+      </div>
+      <div class="hud-tr glass">
+        <div id="hud-region">Mysteria Island</div>
+        <div><span id="hud-time">09:00</span> · <span id="hud-weather">Cerah</span></div>
+        <div class="small" id="hud-coords"></div>
+        <div class="small" id="hud-fps"></div>
+      </div>
+      <div class="skillbar">
+        <div class="slot"><kbd>LMB</kbd><span>Serang</span></div>
+        <div class="slot dim"><kbd>Q</kbd><span>Skill</span></div>
+        <div class="slot dim"><kbd>R</kbd><span>Ultimate</span></div>
+        <div class="slot"><kbd>E</kbd><span>Interaksi</span></div>
+      </div>
+      <div id="prompt" class="prompt glass"></div>
+      <div id="dialog" class="dialog glass"><h3 id="dialog-title"></h3><p id="dialog-text"></p><p class="small">Tekan E untuk menutup</p></div>
+      <div id="toasts"></div>
+      <div id="help" class="help glass small">
+        <b>Kontrol</b> — WASD jalan · Shift lari · Spasi lompat · Mouse kamera · Scroll zoom · Klik kiri serang · Q skill · R ultimate · E interaksi · Esc jeda · H sembunyikan<br>
+        <b>Debug</b> — T: +1 jam · Y: ganti cuaca
+      </div>
+    </section>
+  </div>
+
+  <div id="fatal"></div>
+
+  <script>
+    // Tampilkan error fatal agar mudah didiagnosis (mis. Three.js gagal dimuat / dibuka lewat file://)
+    window.addEventListener('error', function (e) {
+      var f = document.getElementById('fatal');
+      f.style.display = 'block';
+      f.innerHTML = '<b>Terjadi error:</b> ' + (e.message || 'tidak diketahui') +
+        '<br><small>Pastikan game dibuka lewat server lokal (mis. VS Code Live Server atau <code>npx serve</code>), bukan file://, dan koneksi internet aktif untuk memuat Three.js dari CDN.</small>';
+    });
+  </script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
